@@ -1,0 +1,13 @@
+.gradle
+local.properties
+.idea
+.DS_Store
+build
+${user.home}
+.classpath
+*.iml
+target
+.settings
+captures
+.java-version
+bin
