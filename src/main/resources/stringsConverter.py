@@ -154,9 +154,13 @@ def findCorrespondingLanguageLine(elementId, path):
 class LocalizableStringsParser:
 	def __init__(self, mode):
 
-		self.basePath = os.path.join(ScriptDir,   OUTPUTPath + "/values/strings.xml")
-		self.frPath   = os.path.join(ScriptDir,   OUTPUTPath + "/values-fr/strings.xml")
-		self.esPath   = os.path.join(ScriptDir,   OUTPUTPath + "/values-es/strings.xml")
+		self.paths   = []
+		self.languages     = LANGList
+
+		self.paths.append(os.path.join(ScriptDir,   OUTPUTPath + "/values/strings.xml"))
+
+		for lang in self.languages :
+			self.paths.append(os.path.join(ScriptDir,   OUTPUTPath + "/values-" + lang + "/strings.xml"))
 
 		self.translatableColumn = 1
 		self.baseColumn = 2
@@ -170,43 +174,22 @@ class LocalizableStringsParser:
 	def getIndexes(self):
 
 		indexes = set()
-		tree = etree.parse(self.basePath)
 
 		sarrayCount = 0
-		for element in tree.xpath("/resources/string-array"):
-			id = 0
-			for subElement in element.findall("item"):
-				indexes.add(element.attrib['name'] + "_itemarray_" + str(id))
-				id = id +1
-			sarrayCount = sarrayCount + id
 
+		for path in self.paths :
 
-		for element in tree.xpath("/resources/string"):
-			indexes.add(element.attrib['name'])
+			tree = etree.parse(path)
+			for element in tree.xpath("/resources/string-array"):
+				id = 0
+				for subElement in element.findall("item"):
+					indexes.add(element.attrib['name'] + "_itemarray_" + str(id))
+					id = id +1
+				sarrayCount = sarrayCount + id
 
-		tree = etree.parse(self.frPath)
+			for element in tree.xpath("/resources/string"):
+				indexes.add(element.attrib['name'])
 
-		for element in tree.xpath("/resources/string-array"):
-			id = 0
-			for subElement in element.find("item"):
-				indexes.add(element.attrib['name'] + "_itemarray_" + str(id))
-				id = id +1
-			sarrayCount = sarrayCount + id
-
-		for element in tree.xpath("/resources/string"):
-			indexes.add(element.attrib['name'])
-
-		tree = etree.parse(self.esPath)
-
-		for element in tree.xpath("/resources/string-array"):
-			id = 0
-			for subElement in element.find("item"):
-				indexes.add(element.attrib['name'] + "_itemarray_"  + str(id))
-				id = id +1
-			sarrayCount = sarrayCount + id
-
-		for element in tree.xpath("/resources/string"):
-			indexes.add(element.attrib['name'])
 
 		print('Total array items : ' + str(sarrayCount))
 		print('Total indexes : ' + str(len(indexes)))
@@ -428,6 +411,7 @@ print('languages are '  +	" ".join(args.lang))
 print('resource is ' + args.output)
 
 LANGList = args.lang
+LANGList.append('base')
 OUTPUTPath = args.output
 
 manager = SpreadSheetManager(args.productid, args.mode, args.spreadsheetkey, args.credentiallocation)
