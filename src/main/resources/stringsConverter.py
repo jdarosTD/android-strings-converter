@@ -101,9 +101,9 @@ class SpreadSheetManager:
 				try:
 					self.worksheet = self.spreadsheet.worksheet(self.productId)
 				except gspread.WorksheetNotFound:
-					sys.exit("Translation Google Worksheet not found, product id %s may be wrong."%(self.productId))
+					sys.exit("Translation Google Worksheet not found, product id %s may be wrong." %self.productId)
 		except gspread.SpreadsheetNotFound:
-			sys.exit("Translation Google Spreadsheet not found, spreadsheet key %s may be wrong."%(self.spreadsheetKey))
+			sys.exit("Translation Google Spreadsheet not found, spreadsheet key %s may be wrong." %self.spreadsheetKey)
 		return
 
 
@@ -129,33 +129,40 @@ class OauthServer(BaseHTTPServer.HTTPServer):
 	allow_reuse_address = True
 
 
+def findCorrespondingLanguageLine(elementId, path):
+	tree = etree.parse(path)
+
+	if "_itemarray_" not in elementId:
+
+		for element in tree.findall("//string[@name='"+ elementId + "']"):
+
+			if element.text is not None and len(element.text)> 0:
+				return element.text
+	else :
+		parentElement = elementId.split('_itemarray_')[0]
+		itemId = elementId.split('_itemarray_')[1]
+		for element in tree.findall("//string-array[@name='"+ parentElement + "']"):
+			i = 0
+			for subElement in element.findall("item"):
+				if str(i) == itemId:
+					return subElement.text
+				i = i +1
+
+	return ''
+
 
 class LocalizableStringsParser:
 	def __init__(self, mode):
-		self.basePath = BASELocalizationPath
-		self.frPath = FRLocalizationPath
-		self.esPath = ESLocalizationPath
+
+		self.basePath = os.path.join(ScriptDir,   OUTPUTPath + "/values/strings.xml")
+		self.frPath   = os.path.join(ScriptDir,   OUTPUTPath + "/values-fr/strings.xml")
+		self.esPath   = os.path.join(ScriptDir,   OUTPUTPath + "/values-es/strings.xml")
 
 		self.translatableColumn = 1
 		self.baseColumn = 2
 		self.frColumn   = 3
 		self.esColumn	= 4
 
-
-		fileMode = "r"
-		if mode == "retrieve":
-			fileMode = "w+"
-		#self.enFileHandler = open(basePath, fileMode)
-		#self.frFileHandler = open(frPath, fileMode)
-		#self.esFileHandler = open(esPath, fileMode)
-
-		enParsed = etree.parse(self.basePath)
-		frParsed = etree.parse(self.frPath)
-		esLines = etree.parse(self.esPath)
-
-		self.enLines = len(enParsed.xpath("/resources/string")) + len(enParsed.xpath("/resources/string-array"))
-		self.frLines = len(frParsed.xpath("/resources/string")) + len(frParsed.xpath("/resources/string-array"))
-		self.esLines = len(esLines.xpath("/resources/string"))  + len(esLines.xpath("/resources/string-array"))
 		self.rows = []
 		self.mode = mode
 
@@ -207,14 +214,12 @@ class LocalizableStringsParser:
 
 
 	def populateRows(self):
-		print('Base file size :'+ str(self.enLines))
 
 		missing = set()
-		tree = etree.parse(self.basePath)
 		for elementIndex in self.getIndexes():
 
 			element  = self.findBaseLine(elementIndex)
-			if(element is None):
+			if element is None:
 
 				missing.add(element)
 				print('ERROR : missing element index in base : '+ elementIndex)
@@ -223,35 +228,31 @@ class LocalizableStringsParser:
 			frElement = ''
 			esElement = ''
 			translatable = ''
-			if(element.get('translatable') is None or element.get('translatable') == 'true'):
-				frElement  = self.findCorrespondingFrLine(elementIndex)
-				if(frElement == ''):
+			if element.get('translatable') is None or element.get('translatable') == 'true':
+				frElement  = self.findCorrespondingLanguageLineself(elementIndex, self.frPath)
+				if frElement == '':
 					print('missing  fr Element for : ' + elementIndex)
 
-				esElement  = self.findCorrespondingEsLine(elementIndex)
-				if(esElement == ''):
+				esElement  = self.findCorrespondingLanguageLineself(elementIndex, self.esPath)
+				if esElement == '':
 					print('missing  es Element for : ' + elementIndex)
 
 			else:
 				translatable = 'false'
 
 			self.rows.append([elementIndex, translatable, element.text, frElement, esElement])
-			indexRow = len(self.rows) -1
 
-		if(len(missing) > 0):
+		if len(missing) > 0:
 			print('Missing ' + str(len(missing)) + ' element(s)')
 			return False
 
-
-		#self.frFileHandler.close()
-		#self.enFileHandler.close()
-		#self.esFileHandler.close()
 		return True
+
 
 	def populateWorksheet(self, worksheet):
 		numberOfColumns = 5
 		count = len(self.rows)
-		if(count == 0) : count = 1
+		if count == 0: count = 1
 
 		rangeEnd = 'E'+str(count)
 		cells = worksheet.range('A1:'+rangeEnd)
@@ -263,29 +264,21 @@ class LocalizableStringsParser:
 
 			cell.value = self.rows[rowIndex][columnIndex]
 			value = cell.value
-			if(value is None) :
+			if value is None:
 				value = ''
 
-			#print('Cell is :' + str(cell.col) + str(cell.row) + ' value : ' + value)
 
 		worksheet.update_cells(cells)
 		return
 
 
-	def stripChunks(self, lineChunks):
-		for lineChunk in lineChunks:
-			lineChunk = lineChunk.strip();
-		#print(lineChunks)
-		return
-
 	def findBaseLine(self, elementId):
 		tree = etree.parse(self.basePath)
 
-
-		if("_itemarray_" not in elementId):
+		if "_itemarray_" not in elementId:
 			for baseElement in tree.findall("//string[@name='"+ elementId + "']"):
 
-				if(baseElement.text is not None and len(baseElement.text)> 0):
+				if baseElement.text is not None and len(baseElement.text)> 0:
 					return baseElement
 
 		else :
@@ -296,54 +289,11 @@ class LocalizableStringsParser:
 			for baseElement in tree.findall("//string-array[@name='"+ parentElement + "']"):
 				i = 0
 				for subElement in baseElement.findall("item"):
-					if(str(i) == itemId):
+					if str(i) == itemId:
 						return subElement
 					i = i +1
 
 		return None
-
-	def findCorrespondingFrLine(self, elementId):
-		tree = etree.parse(self.frPath)
-
-		if("_itemarray_" not in elementId):
-
-			for frElement in tree.findall("//string[@name='"+ elementId + "']"):
-
-				if(frElement.text is not None and len(frElement.text)> 0):
-					return frElement.text
-		else :
-			parentElement = elementId.split('_itemarray_')[0]
-			itemId = elementId.split('_itemarray_')[1]
-			for baseElement in tree.findall("//string-array[@name='"+ parentElement + "']"):
-				i = 0
-				for subElement in baseElement.findall("item"):
-					if(str(i) == itemId):
-						return subElement.text
-					i = i +1
-
-		return ''
-
-	def findCorrespondingEsLine(self, elementId):
-		tree = etree.parse(self.esPath)
-
-		if("_itemarray_" not in elementId):
-
-			for esElement in tree.findall("//string[@name='"+ elementId + "']"):
-
-				if(esElement.text is not None and len(esElement.text)> 0):
-					return esElement.text
-		else :
-			parentElement = elementId.split('_itemarray_')[0]
-			itemId = elementId.split('_itemarray_')[1]
-			for baseElement in tree.findall("//string-array[@name='"+ parentElement + "']"):
-				i = 0
-				for subElement in baseElement.findall("item"):
-					if(str(i) == itemId):
-						return subElement.text
-					i = i +1
-
-		return ''
-
 
 	def lineData(self, line):
 		lineData = line.split('=')
@@ -366,7 +316,7 @@ class LocalizableStringsParser:
 	def apply(self, worksheet):
 		print('Applying values from local')
 
-		if(self.populateRows() == True):
+		if self.populateRows():
 			self.populateWorksheet(worksheet)
 			print('Remote file updated')
 
@@ -405,10 +355,10 @@ class LocalizableStringsParser:
 		with open(path, 'wb') as doc:
 
 			for row in rows:
-				if(index < len(row)  and row[index] is not None and len(row[index]) > 0):
+				if index < len(row)  and row[index] is not None and len(row[index]) > 0:
 
 					# is an array
-					if("_itemarray_"  in row[0] ):
+					if "_itemarray_"  in row[0]:
 						parentElementIndex = row[0].split('_itemarray_')[0]
 						print('parentElementIndex is ' + parentElementIndex)
 						itemId = row[0].split('_itemarray_')[1]
@@ -419,7 +369,7 @@ class LocalizableStringsParser:
 							parentElement = baseElement
 							break
 
-						if(parentElement is None):
+						if parentElement is None:
 							parentElement = etree.SubElement(top,'string-array')
 							parentElement.attrib['name'] = parentElementIndex
 
@@ -435,13 +385,13 @@ class LocalizableStringsParser:
 						child.text = row[index]
 						child.attrib['name'] = row[0]
 
-				if(index == self.baseColumn and len(row[index]) == 0):
+				if index == self.baseColumn and len(row[index]) == 0:
 					missing.append(row[0])
 
-				if(index != self.baseColumn and len(row[self.baseColumn]) == 0):
+				if index != self.baseColumn and len(row[self.baseColumn]) == 0:
 					missing.append(row[0])
 
-				if(index == self.baseColumn and len(row[self.translatableColumn]) > 0):
+				if index == self.baseColumn and len(row[self.translatableColumn]) > 0:
 					child.attrib['translatable'] = row[self.translatableColumn]
 
 
@@ -470,13 +420,15 @@ if __name__ == '__main__':
 	parser.add_argument('-gcid', '--clientid', type=str, help='Specify a google client id to access Google sheet')
 	parser.add_argument('-gcsecret', '--clientsecret', type=str, help='Specify a google client secret to access Google sheet')
 	parser.add_argument('-cl', '--credentiallocation', type=str, default= "", help='Specifiy a location for google credentials')
+	parser.add_argument('-l', '--lang', nargs='+', help='Specify a list of managed languages')
 	args = parser.parse_args()
 
+print('languages are '  +	" ".join(args.lang))
 
 print('resource is ' + args.output)
-BASELocalizationPath = os.path.join(ScriptDir, args.output + "/values/strings.xml")
-FRLocalizationPath = os.path.join(ScriptDir,   args.output + "/values-fr/strings.xml")
-ESLocalizationPath = os.path.join(ScriptDir,   args.output + "/values-es/strings.xml")
+
+LANGList = args.lang
+OUTPUTPath = args.output
 
 manager = SpreadSheetManager(args.productid, args.mode, args.spreadsheetkey, args.credentiallocation)
 
