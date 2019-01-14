@@ -83,5 +83,7 @@ Nota Bene. At this time, the plugin is not available from any public repository.
 
      * ### Step 3 : Launch the script with a simple build
       
-      gradle app:convertTask 
+       ```groovy
+       gradle app:convertTask
+       ```
     
