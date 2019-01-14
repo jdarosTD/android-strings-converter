@@ -70,12 +70,12 @@ Nota Bene. At this time, the plugin is not available from any public repository.
     
     *Example:*
     
-         ```groovy
-         stringsconverter {
-              ...
-              lang = "fr, es"
-           }
-         ```
+    ```groovy
+   stringsconverter {
+        ...
+       lang = "fr, es"
+   }
+    ```
        
      In this example, we are considering English as the default language
      
