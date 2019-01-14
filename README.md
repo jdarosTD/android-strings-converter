@@ -13,7 +13,7 @@ Nota Bene. At this time, the plugin is not available from any public repository.
   
   ```groovy
     buildscript {
-      ext.pluginVersion = '1.2'
+      ext.pluginVersion = '1.2.1'
 
       repositories {
           mavenLocal()
