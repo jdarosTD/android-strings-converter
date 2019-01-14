@@ -18,6 +18,9 @@ import urllib.parse as urlparse
 
 ScriptDir = os.path.dirname(__file__)
 
+TRANSLATABLE_COLUMN = 1
+DEFAULT_LANG_COLUMN = 2
+
 class SpreadSheetManager:
 
 	def __init__(self, productId, mode, spreadsheetKey, credentiallocation):
@@ -129,27 +132,6 @@ class OauthServer(BaseHTTPServer.HTTPServer):
 	allow_reuse_address = True
 
 
-def findCorrespondingLanguageLine(elementId, path):
-	tree = etree.parse(path)
-
-	if "_itemarray_" not in elementId:
-
-		for element in tree.findall("//string[@name='"+ elementId + "']"):
-
-			if element.text is not None and len(element.text)> 0:
-				return element.text
-	else :
-		parentElement = elementId.split('_itemarray_')[0]
-		itemId = elementId.split('_itemarray_')[1]
-		for element in tree.findall("//string-array[@name='"+ parentElement + "']"):
-			i = 0
-			for subElement in element.findall("item"):
-				if str(i) == itemId:
-					return subElement.text
-				i = i +1
-
-	return ''
-
 
 class LocalizableStringsParser:
 	def __init__(self, mode):
@@ -157,15 +139,13 @@ class LocalizableStringsParser:
 		self.paths   = []
 		self.languages     = LANGList
 
-		self.paths.append(os.path.join(ScriptDir,   OUTPUTPath + "/values/strings.xml"))
+		self.paths.append(os.path.join(ScriptDir,   OUTPUTPath + "\\values\\strings.xml"))
 
 		for lang in self.languages :
-			self.paths.append(os.path.join(ScriptDir,   OUTPUTPath + "/values-" + lang + "/strings.xml"))
+			self.paths.append(os.path.join(ScriptDir,   OUTPUTPath + "\\values-" + lang + "\\strings.xml"))
 
 		self.translatableColumn = 1
-		self.baseColumn = 2
-		self.frColumn   = 3
-		self.esColumn	= 4
+		self.baseColumn = DEFAULT_LANG_COLUMN
 
 		self.rows = []
 		self.mode = mode
@@ -193,6 +173,7 @@ class LocalizableStringsParser:
 
 		print('Total array items : ' + str(sarrayCount))
 		print('Total indexes : ' + str(len(indexes)))
+
 		return indexes
 
 
@@ -208,28 +189,61 @@ class LocalizableStringsParser:
 				print('ERROR : missing element index in base : '+ elementIndex)
 				continue
 
-			frElement = ''
-			esElement = ''
+			print('Got element in language BASE : ' + element.text)
 			translatable = ''
-			if element.get('translatable') is None or element.get('translatable') == 'true':
-				frElement  = self.findCorrespondingLanguageLineself(elementIndex, self.frPath)
-				if frElement == '':
-					print('missing  fr Element for : ' + elementIndex)
 
-				esElement  = self.findCorrespondingLanguageLineself(elementIndex, self.esPath)
-				if esElement == '':
-					print('missing  es Element for : ' + elementIndex)
+			row = []
+			row.append(elementIndex)
+
+			if element.get('translatable') is None or element.get('translatable') == 'true':
+				langId = 0
+				row.append(translatable)
+				row.append(element.text)
+				for lang in self.languages :
+					print("For language " + lang)
+					cElement  = self.findCorrespondingLanguageLine(elementIndex, self.paths[langId + 1])
+					if cElement == '':
+						print('missing ' + lang + 'Element for : ' + elementIndex)
+
+					print('Got element in language ' + lang + ' : ' + cElement)
+					row.append(cElement)
+
+					langId = langId + 1
 
 			else:
 				translatable = 'false'
+				row.append(translatable)
+				row.append(element.text)
 
-			self.rows.append([elementIndex, translatable, element.text, frElement, esElement])
+			self.rows.append(row)
 
 		if len(missing) > 0:
 			print('Missing ' + str(len(missing)) + ' element(s)')
 			return False
 
 		return True
+
+
+	def findCorrespondingLanguageLine(self, elementId, path):
+		tree = etree.parse(path)
+
+		if "_itemarray_" not in elementId:
+
+			for element in tree.findall("//string[@name='"+ elementId + "']"):
+
+				if element.text is not None and len(element.text)> 0:
+					return element.text
+		else :
+			parentElement = elementId.split('_itemarray_')[0]
+			itemId = elementId.split('_itemarray_')[1]
+			for element in tree.findall("//string-array[@name='"+ parentElement + "']"):
+				i = 0
+				for subElement in element.findall("item"):
+					if str(i) == itemId:
+						return subElement.text
+					i = i +1
+
+		return ''
 
 
 	def populateWorksheet(self, worksheet):
@@ -256,7 +270,7 @@ class LocalizableStringsParser:
 
 
 	def findBaseLine(self, elementId):
-		tree = etree.parse(self.basePath)
+		tree = etree.parse(self.paths[0])
 
 		if "_itemarray_" not in elementId:
 			for baseElement in tree.findall("//string[@name='"+ elementId + "']"):
@@ -320,9 +334,12 @@ class LocalizableStringsParser:
 		print(str(len(rows))+" rows found, populating local files...")
 
 		missing = list()
-		missing.extend(self.populateFile(self.basePath,self.baseColumn, rows))
-		missing.extend(self.populateFile(self.frPath, self.frColumn, rows))
-		missing.extend(self.populateFile(self.esPath, self.esColumn, rows))
+
+		columnIndex = 2
+		for path in self.paths :
+
+			missing.extend(self.populateFile(path,columnIndex, rows))
+			columnIndex = columnIndex + 1
 
 		print('missing elements in base:')
 		print(missing)
@@ -332,6 +349,7 @@ class LocalizableStringsParser:
 
 	def populateFile(self, path, index, rows):
 
+		print('populate , path: ' + path)
 		top = etree.Element('resources')
 
 		missing = list()
@@ -358,9 +376,6 @@ class LocalizableStringsParser:
 
 						subElement = etree.SubElement(parentElement,'item')
 						subElement.text = row[index]
-					# is array exists ?
-					# if no, create
-					# populate array
 
 					else: # is not an array
 
@@ -403,15 +418,18 @@ if __name__ == '__main__':
 	parser.add_argument('-gcid', '--clientid', type=str, help='Specify a google client id to access Google sheet')
 	parser.add_argument('-gcsecret', '--clientsecret', type=str, help='Specify a google client secret to access Google sheet')
 	parser.add_argument('-cl', '--credentiallocation', type=str, default= "", help='Specifiy a location for google credentials')
-	parser.add_argument('-l', '--lang', nargs='+', help='Specify a list of managed languages')
+	parser.add_argument('-l', '--lang', type=str, help='Specify a list of managed languages')
 	args = parser.parse_args()
 
-print('languages are '  +	" ".join(args.lang))
+# print('languages are '  +	" ".join(args.lang))
 
 print('resource is ' + args.output)
 
-LANGList = args.lang
-LANGList.append('base')
+argLang = args.lang.replace(" ", "")
+
+LANGList = argLang.split(",")
+for s in LANGList:
+	print(s)
 OUTPUTPath = args.output
 
 manager = SpreadSheetManager(args.productid, args.mode, args.spreadsheetkey, args.credentiallocation)
