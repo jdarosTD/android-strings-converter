@@ -2,7 +2,7 @@
 
 **DRAFT version : Thank you for indulging me ;)**
 
-This gradle plugin provide you a way to manage your Android App/Module strings resources from/to a google sheet file. 
+This gradle plugin provides you a way to manage your Android App/Module strings resources from/to a google sheet file. 
 
 Nota Bene. At this time, the plugin is not available from any public repository. You will have to to install it in your own 
 
