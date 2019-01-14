@@ -1,6 +1,6 @@
 # android-strings-converter
 
-DRAFT version 
+**DRAFT version : Thank you for indulging me ;) **
 
 This gradle plugin provide you a way to manage your Android App/Module strings resources from/to a google sheet file. 
 
@@ -45,20 +45,41 @@ Nota Bene. At this time, the plugin is not available from any public repository.
     }
     ```
     
-    There are 2 differents modes :
+    **There are 2 differents modes :**
+    
       * Retrieve : to retrieve the remote google sheet file to your local project
       * Apply    : to apply your local resources file to your remote google sheet
       
+    **Google authentication :**
+    
     The plugin uses oAuth2 to connect to your google spreadsheet.
       Throw the google console api, you will have :
       * To active the google sheet api
       * Create an OAuth 2.0 client id
       * Add the client id and client secret in your build file (or your gradle global properties) as defined above
     
-    Then, from your google drive, create a single google sheet file, and add its key in your build.gradle as defined above
+    Then, from your google drive, create a single google sheet file, and add its key in your build.gradle as defined above 
+       
+    **!! NB  :** Actually, you will have create one tab per module. The name of the tab has to be the name of the module. Auto creation of the tab will come soon
     
-    NB : Actually, you will have create one tab per module. The name of the tab has to be the name of the module. Auto creation of the tab will come soon
     
+    **Languages :**
+    
+    You will have to define the languages you manage in your app. There must be at least one language defined.
+    There is also a "Main" language defined as in Android as a default language
+    
+    *Example:*
+       ```groovy
+       stringsconverter {
+          ...
+          lang = "fr, es"
+       }
+       ```
+       
+       In this example, we are considering English as the default language
+       
+     **!! NB  :** Actually there is no "header" generated in the Google sheet, so you have to keep the order of the languages in your file and in your configuration. Evolution will come soon.
+
      * ### Step 3 : Launch the script with a simple build
      
      The plugin is defined as it is a dependency of the "preBuild" task in the Android Gradle Plugin. On the first launch, the plugin will launch a browser for you to let you connect on your google account.
