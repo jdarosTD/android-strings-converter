@@ -82,23 +82,6 @@ Nota Bene. At this time, the plugin is not available from any public repository.
      **!! NB  :** Actually there is no "header" generated in the Google sheet, so you have to keep the order of the languages in your file and in your configuration. Evolution will come soon.
 
      * ### Step 3 : Launch the script with a simple build
-     
-     The plugin is defined as it is a dependency of the "preBuild" task in the Android Gradle Plugin. On the first launch, the plugin will launch a browser for you to let you connect on your google account.
-     
-     If you don't want to apply this plugin on every build you make, you can consider adding a property like for instance : 
-     
-     ```groovy
-     if(!project.hasProperty("noStringPlugin")) {
-       apply plugin: 'strings-converter'
-
-        stringsconverter {
-            ...
-        }
-      }
-      ```
       
-      and add your property on your build command line
-      
-      ```
-      gradle app:assembleDebug -PnoStrConverter
+      gradle app:convertTask 
     
