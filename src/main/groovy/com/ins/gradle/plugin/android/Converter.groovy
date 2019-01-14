@@ -59,7 +59,7 @@ class Converter implements Plugin<Project> {
 
         }
 
-        project.build {
+        project.preBuild {
             dependsOn converterTask
         }
     }
