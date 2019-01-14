@@ -25,7 +25,7 @@ Nota Bene. At this time, the plugin is not available from any public repository.
   }
   ```
  
-  If your Android App is managed throw different modules, you can apply the plugin to each one if they include some strings resources 
+  If your Android App is managed through different modules, you can apply the plugin to each one if they include some strings resources 
  
    ```groovy
    apply plugin: 'strings-converter'
@@ -53,7 +53,7 @@ Nota Bene. At this time, the plugin is not available from any public repository.
     **Google authentication :**
     
     The plugin uses oAuth2 to connect to your google spreadsheet.
-      Throw the google console api, you will have :
+      Through the google console api, you will have :
       * To active the google sheet api
       * Create an OAuth 2.0 client id
       * Add the client id and client secret in your build file (or your gradle global properties) as defined above
