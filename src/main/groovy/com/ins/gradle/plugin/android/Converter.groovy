@@ -10,67 +10,73 @@ import org.gradle.api.tasks.Exec
 
 class Converter implements Plugin<Project> {
     void apply(Project project) {
-        // Add the 'greeting' extension object
-        project.extensions.create("stringsconverter", ConverterExtension)
+        // Add the 'stringsconverter' extension object
+        def extension = project.extensions.create("stringsconverter", ConverterExtension)
         // Add a task that uses the configuration
 
-        project.preBuild {
+        def converterTask = project.task('converterTask', type: Exec) {
+            doFirst {
+                String mode = extension.mode
+                String resourcesDir = extension.resourcesDir
 
-            dependsOn {
-                project.task('stringsconverter', type: Exec) {
+                def name = project.name
+                resourcesDir = project.projectDir.absolutePath + "\\" + resourcesDir
 
-                    String mode = project.stringsconverter.mode
-                    String resourcesDir = project.stringsconverter.resourcesDir
+                def clientId = extension.clientId
+                def clientSecret = extension.clientSecret
+                def spreadSheetKey = extension.spreadsheetKey
+                ClassLoader classLoader = getClass().getClassLoader()
+                def fis = classLoader.getResourceAsStream("stringsConverter.py")
 
-                    def name = project.name
-                    resourcesDir = project.projectDir.absolutePath + "\\" + resourcesDir
+                def languages = extension.lang
+                println languages
 
-                    def clientId = project.stringsconverter.clientId
-                    def clientSecret = project.stringsconverter.clientSecret
-                    def spreadSheetKey  = project.stringsconverter.spreadsheetKey
-                    ClassLoader classLoader = getClass().getClassLoader()
-                    def fis = classLoader.getResourceAsStream("stringsConverter.py")
-
-                    def credentiallocation = project.stringsconverter.credentiallocation
-                    if(credentiallocation == null){
-                        credentiallocation = project.rootProject.getBuildDir()
-                    }
-                    def tmp = new File(project.getBuildDir().toString() + "\\tmp")
-                    if (!tmp.exists()) tmp.mkdirs()
-
-                    def tmpFile = new File(project.getBuildDir().toString() + "\\tmp\\stringsConverter.py")
-                    FileOutputStream fos = new FileOutputStream(tmpFile)
-                    int c
-
-                    while ((c = fis.read()) != -1) {
-                        fos.write(c)
-                    }
-
-                    fis.close()
-                    fos.close()
-
-                    println mode
-                    println resourcesDir
-
-
-                    workingDir project.projectDir
-                    commandLine 'py', tmpFile.getPath(), '-gcid',clientId, '-gcsecret', clientSecret, '-cl', credentiallocation, '-sk',spreadSheetKey, '-m', mode, "-o", resourcesDir, name
+                def credentiallocation = extension.credentiallocation
+                if (credentiallocation == null) {
+                    credentiallocation = project.rootProject.getBuildDir()
                 }
+                def tmp = new File(project.getBuildDir().toString() + "\\tmp")
+                if (!tmp.exists()) tmp.mkdirs()
+
+                def tmpFile = new File(project.getBuildDir().toString() + "\\tmp\\stringsConverter.py")
+                FileOutputStream fos = new FileOutputStream(tmpFile)
+                int c
+
+                while ((c = fis.read()) != -1) {
+                    fos.write(c)
+                }
+
+                fis.close()
+                fos.close()
+
+                println mode
+                println resourcesDir
+
+
+                workingDir project.projectDir
+                commandLine 'py', tmpFile.getPath(), '-gcid', clientId, '-gcsecret', clientSecret, '-cl', credentiallocation, '-sk', spreadSheetKey, '-m', mode, '-l', languages, "-o", resourcesDir, name
             }
+
+        }
+
+        project.build {
+            dependsOn converterTask
         }
     }
 }
-
 
 class ConverterExtension {
 
 
     def static final DEFAULT_RESOURCES_PATH = 'src\\main\\res'
-    def String mode = 'retrieve'
-    def String resourcesDir = DEFAULT_RESOURCES_PATH
-    def String clientId = ''
-    def String clientSecret = ''
-    def String spreadsheetKey = ''
-    def String credentiallocation = null
+    String mode = 'retrieve'
+    String resourcesDir = DEFAULT_RESOURCES_PATH
+    String clientId = ''
+    String clientSecret = ''
+    String spreadsheetKey = ''
+    String credentiallocation = null
+    String   lang
+
+
 }
 
