@@ -1,6 +1,6 @@
 # android-strings-converter
 
-**DRAFT version : Thank you for indulging me ;)**
+
 
 This gradle plugin provides you a way to manage your Android App/Module strings resources from/to a google sheet file. 
 
