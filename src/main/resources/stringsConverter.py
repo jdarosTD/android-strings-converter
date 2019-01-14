@@ -263,8 +263,8 @@ class LocalizableStringsParser:
 				if value is None:
 					value = ''
 			except IndexError:
-				## print('Index  : ' + str(index)+ ' Row : ' + str(rowIndex) + ' No column : ' + str(columnIndex),
-				     ##            'Total Column: ' + str(len(self.rows[rowIndex])))
+				print('Index  : ' + str(index)+ ' Row : ' + str(rowIndex) + ' No column : ' + str(columnIndex),
+				                'Total Column: ' + str(len(self.rows[rowIndex])))
 
 		worksheet.update_cells(cells)
 		return

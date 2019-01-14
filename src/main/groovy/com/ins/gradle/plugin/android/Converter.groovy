@@ -14,7 +14,7 @@ class Converter implements Plugin<Project> {
         def extension = project.extensions.create("stringsconverter", ConverterExtension)
         // Add a task that uses the configuration
 
-        def converterTask = project.task('converterTask', type: Exec) {
+        project.task('converterTask', type: Exec) {
             doFirst {
                 String mode = extension.mode
                 String resourcesDir = extension.resourcesDir
@@ -59,9 +59,9 @@ class Converter implements Plugin<Project> {
 
         }
 
-        project.preBuild {
-            dependsOn converterTask
-        }
+//        project.preBuild {
+//            dependsOn converterTask
+//        }
     }
 }
 
