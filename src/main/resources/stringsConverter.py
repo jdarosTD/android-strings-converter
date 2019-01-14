@@ -189,7 +189,6 @@ class LocalizableStringsParser:
 				print('ERROR : missing element index in base : '+ elementIndex)
 				continue
 
-			print('Got element in language BASE : ' + element.text)
 			translatable = ''
 
 			row = []
@@ -200,12 +199,10 @@ class LocalizableStringsParser:
 				row.append(translatable)
 				row.append(element.text)
 				for lang in self.languages :
-					print("For language " + lang)
 					cElement  = self.findCorrespondingLanguageLine(elementIndex, self.paths[langId + 1])
 					if cElement == '':
-						print('missing ' + lang + 'Element for : ' + elementIndex)
+						print('missing ' + lang +  'Element for : ' + elementIndex)
 
-					print('Got element in language ' + lang + ' : ' + cElement)
 					row.append(cElement)
 
 					langId = langId + 1
@@ -252,18 +249,22 @@ class LocalizableStringsParser:
 		if count == 0: count = 1
 
 		rangeEnd = 'E'+str(count)
+		print("Nb of rows : " + str(count))
 		cells = worksheet.range('A1:'+rangeEnd)
 		print('Total cells entries : ' + str(len(cells)))
 		for index, cell in enumerate(cells):
 			rowIndex = index//numberOfColumns
 			columnIndex = index%numberOfColumns
-			#	print('Row : ' + str(rowIndex) + ' Column : ' + str(columnIndex))
 
-			cell.value = self.rows[rowIndex][columnIndex]
-			value = cell.value
-			if value is None:
-				value = ''
 
+			try:
+				cell.value = self.rows[rowIndex][columnIndex]
+				value = cell.value
+				if value is None:
+					value = ''
+			except IndexError:
+				## print('Index  : ' + str(index)+ ' Row : ' + str(rowIndex) + ' No column : ' + str(columnIndex),
+				     ##            'Total Column: ' + str(len(self.rows[rowIndex])))
 
 		worksheet.update_cells(cells)
 		return
