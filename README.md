@@ -1,6 +1,6 @@
 # android-strings-converter
 
-**DRAFT version : Thank you for indulging me ;)**
+
 
 This gradle plugin provides you a way to manage your Android App/Module strings resources from/to a google sheet file. 
 
@@ -25,7 +25,7 @@ Nota Bene. At this time, the plugin is not available from any public repository.
   }
   ```
  
-  If your Android App is managed throw different modules, you can apply the plugin to each one if they include some strings resources 
+  If your Android App is managed through different modules, you can apply the plugin to each one if they include some strings resources 
  
    ```groovy
    apply plugin: 'strings-converter'
@@ -53,7 +53,7 @@ Nota Bene. At this time, the plugin is not available from any public repository.
     **Google authentication :**
     
     The plugin uses oAuth2 to connect to your google spreadsheet.
-      Throw the google console api, you will have :
+      Through the google console api, you will have :
       * To active the google sheet api
       * Create an OAuth 2.0 client id
       * Add the client id and client secret in your build file (or your gradle global properties) as defined above
@@ -69,15 +69,16 @@ Nota Bene. At this time, the plugin is not available from any public repository.
     There is also a "Main" language defined as in Android as a default language
     
     *Example:*
-       ```groovy
-       stringsconverter {
-          ...
-          lang = "fr, es"
-       }
-       ```
+    
+    ```groovy
+   stringsconverter {
+        ...
+       lang = "fr, es"
+   }
+    ```
        
-       In this example, we are considering English as the default language
-       
+     In this example, we are considering English as the default language
+     
      **!! NB  :** Actually there is no "header" generated in the Google sheet, so you have to keep the order of the languages in your file and in your configuration. Evolution will come soon.
 
      * ### Step 3 : Launch the script with a simple build
