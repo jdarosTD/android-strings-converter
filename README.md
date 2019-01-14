@@ -70,13 +70,12 @@ Nota Bene. At this time, the plugin is not available from any public repository.
     
     *Example:*
     
-       ```groovy
+      ```groovy
        stringsconverter {
           ...
           lang = "fr, es"
-       }
+       }     
        ```
-       
        In this example, we are considering English as the default language
        
      **!! NB  :** Actually there is no "header" generated in the Google sheet, so you have to keep the order of the languages in your file and in your configuration. Evolution will come soon.
