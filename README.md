@@ -11,7 +11,8 @@ Nota Bene. At this time, the plugin is not available from any public repository.
 
 ## Setup
 
-* ### Pre-requisites : This plugin is based on a python script. You have to firstly install Python3.
+* ### Pre-requisites : 
+This plugin is based on a python script. You have to firstly install Python3.
 Then several modules needed :
 
 Here is an extract of the libraries uses in the script , so be sure everything is available. 
