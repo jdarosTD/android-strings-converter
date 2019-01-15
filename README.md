@@ -6,7 +6,38 @@ This gradle plugin provides you a way to manage your Android App/Module strings 
 
 Nota Bene. At this time, the plugin is not available from any public repository. You will have to to install it in your own 
 
+
+
+
 ## Setup
+
+* ### Pre-requisites : This plugin is based on a python script. You have to firstly install Python3.
+Then several modules needed :
+
+Here is an extract of the libraries uses in the script , so be sure everything is available. 
+
+```python
+  import gspread
+  import oauth2client
+  import webbrowser
+  import http.server as BaseHTTPServer
+  import sys
+  import threading
+  from oauth2client.client import OAuth2WebServerFlow
+  import signal
+  import time
+  from oauth2client.file import Storage
+  import os
+  import sys
+
+  from lxml import etree
+
+  import argparse
+  import urllib.parse as urlparse
+```
+
+
+
 * ### Step 1 : Adding plugin to your project
 
   From your project build file add the the dependency in the buildScript
